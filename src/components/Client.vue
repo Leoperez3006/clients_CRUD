@@ -10,10 +10,9 @@
       :filter="filter"
       :pagination.sync="pagination"
       :rows-per-page-options="rowsPerPageOptions"
-    >
-            <template v-slot:top-right>
+      >
+      <template v-slot:top-right>
         <div class = "col q-pa-md q-gutter-sm">
-
           <q-btn
             color="blue"
             icon-right="add"
@@ -21,18 +20,19 @@
             @click="modalAdd = true"
             no-caps
           />
-
         </div>
-          <q-input
-
-          borderless dense debounce="300" v-model="filter" placeholder="Buscar">
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
-
+        <q-input
+          borderless
+          dense
+          debounce="300"
+          v-model="filter"
+          placeholder="Buscar"
+          >
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
       </template>
-
       <template v-slot:item="props">
         <div class="q-pa-md col-xs-12 col-sm-6 col-md-4">
           <q-card>
@@ -74,6 +74,11 @@
       </template>
     </q-table>
 
+
+<!--
+
+  Modal for editing and updating
+ -->
   <q-dialog persistent q-dialog v-model="modalAdd">
     <q-card style="width: 700px; max-width: 80vw;">
       <q-card-section class="row items-center q-pb-none">
@@ -139,22 +144,15 @@
     </q-card>
   </q-dialog>
 
-
-
   </div>
 </template>
 
 <script>
 import { api } from "boot/axios";
-import { useQuasar } from 'quasar'
 
 
 
 export default {
-  setup (){
-    const $q = useQuasar()
-  },
-
     props: {
     c: {
       type: Array,
@@ -189,6 +187,7 @@ export default {
       }
     },
   computed: {
+    // returns computed card style
     cardContainerClass () {
       if (this.$q.screen.gt.xs) {
         return 'grid-masonry grid-masonry--' + (this.$q.screen.gt.sm ? '3' : '2')
@@ -196,6 +195,7 @@ export default {
 
       return void 0
     },
+    //returns computed pagination
     rowsPerPageOptions () {
       if (this.$q.screen.gt.xs) {
         return this.$q.screen.gt.sm ? [ 3, 6, 9 ] : [ 3, 6 ]
@@ -219,9 +219,13 @@ export default {
       }
       return 9
     },
+
+    //Function to add or update a client.
+    //Is in the same function, because is the same modal for both
+    //That allows to have the same functionality, with less code
      addOrUpdate(){
-       if(this.add) {
-          this.$emit('add-client', this.client)
+       if(this.add) { // if adding executes api.post
+          this.$emit('add-client', this.client)//emits changes to parent component
           api.post('/client', {
             name: this.client.name,
             p_lastname: this.client.p_lastname,
@@ -233,7 +237,7 @@ export default {
             console.log(res)
             this.modalAdd = false
 
-                        if (res.data.status  === 1){
+            if (res.data.status  === 1){
               this.$q.notify({
               message: 'Usuario agregado correctamente',
               icon: 'done',
@@ -248,7 +252,7 @@ export default {
             }
 
           })
-       } else {
+       } else { // if not adding, executes patch/put
           api.patch('/client/' + this.client.id, {
             name: this.client.name,
             p_lastname: this.client.p_lastname,
@@ -279,18 +283,15 @@ export default {
 
 
       },
-
+      // function to turn v-model to edited parameters
       editClient(x){
         this.client =x
         this.add = false
         this.modalAdd = true
       },
-      emit (x){
-        this.$emit('delete-client', x)
-      },
+      //Function to delete client
       deleteClient (x) {
-      console.log(typeof(x.id),x.id)
-      this.$q.dialog({
+      this.$q.dialog({ // modal to confirm desicion
         title: '¿Eliminar?',
         message: '¿Desea eliminar a ' + x.name + '?',
         ok: {
@@ -305,9 +306,8 @@ export default {
         },
         persistent: true
       }).onOk(() => {
-        if (x.id != null){
-          this.$emit('delete-client', x)
-
+        if (x.id != null){ // if it is a recent user, we have no id for this, so we can erase trough its id
+          this.$emit('delete-client', x) // if it is not a recent user, we emit the deleted to the parent
         } else {
           this.$q.notify({
             message: 'Porfavor, recargue la pagina',

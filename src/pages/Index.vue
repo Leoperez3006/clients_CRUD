@@ -1,6 +1,6 @@
 <template>
   <q-page >
-    <!-- <client v-for="client in clients" :key="client.id" :c="client"></client> -->
+ <!-- client component. C is an array of clients. it is a required prop for the component -->
     <client :c="clients" @add-client="addClient" @delete-client="deleteClient" ref="deletedClient"></client>
   </q-page>
 </template>
@@ -21,18 +21,18 @@ export default {
 
   },
   methods: {
+    //adds client to clients array
     addClient(addedClient){
-      console.log('added',addedClient)
       this.clients.splice(this.clients.length, 0, addedClient);
     },
+    //deletes client from clients array
     deleteClient(deletedClient){
       let index = this.clients.findIndex(client => client.id === deletedClient.id)
       this.clients.splice(index, 1)
 
     },
 
-
-
+    // gets all clients from clients api
     getClients() {
     api.get('client', {
       headers: {
@@ -45,9 +45,10 @@ export default {
       })
     }
   },
+
+
   mounted (){
-    console.log('peticion a la API')
-    this.getClients()
+    this.getClients() // it is executed when the component is mounted
   }
 }
 </script>
